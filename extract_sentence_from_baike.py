@@ -64,22 +64,6 @@ def tag_cn_num(tag_list, l_taged, line):
         if l_taged[tag_position + 1] == 'i' or l_taged[tag_position + 1] == 'j' or l_taged[tag_position + 1] == 'k':
             l_taged[tag_position + 1] = 'w'
         tag_pos = re.search("w[^w]w", ''.join(l_taged[end_pos:]))
-    tag_pos = re.search("[^w]w", ''.join(l_taged))
-    end_pos = 0
-    while tag_pos:
-        tag_position = end_pos + tag_pos.start()
-        end_pos += tag_pos.end()
-        if l_taged[tag_position] == 'i' or l_taged[tag_position] == 'j' or l_taged[tag_position] == 'k' or l_taged[tag_position] == 'g':
-            l_taged[tag_position] = 'w'
-        tag_pos = re.search("[^w]w", ''.join(l_taged[end_pos:]))
-    tag_pos = re.search("w[^w]", ''.join(l_taged))
-    end_pos = 0
-    while tag_pos:
-        tag_position = end_pos + tag_pos.start()
-        end_pos += tag_pos.end()
-        if l_taged[tag_position] == 'i' or l_taged[tag_position] == 'j' or l_taged[tag_position] == 'k' or l_taged[tag_position] == 'g':
-            l_taged[tag_position] = 'w'
-        tag_pos = re.search("[^w]w", ''.join(l_taged[end_pos:]))
     return l_taged
 
 

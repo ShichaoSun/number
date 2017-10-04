@@ -9,6 +9,10 @@ def token_in_line(token_list, line):
 
 
 def tag_cn_num(tag_list, l_taged, line):
+    flag = [0 for i in range(len(l_taged))]
+    for i in range(len(l_taged)):
+        if l_taged[i] != 'w':
+            flag[i] = 1
     tag_f = tag_list[0]
     line_l = len(line)
     for l_i in range(line_l):
@@ -56,19 +60,32 @@ def tag_cn_num(tag_list, l_taged, line):
             else:
                 l_taged[position] = 'g'
             pos = re.search("十", line[end_pos:])
-    tag_pos = re.search("w[^w]w", ''.join(l_taged))
+    end_pos = 0
+    s_taged = ''.join(l_taged)
+    pos_r = re.search("a+g+", s_taged)
+    while pos_r:
+        pos_start = end_pos + pos_r.start()
+        end_pos += pos_r.end()
+        for i in range(pos_start, end_pos):
+            flag[i] = 1
+        pos_r = re.search("a+g+", s_taged[end_pos:])
+    pattern = re.compile("((fg+h?)+f?|f)(jf+)?i((fg+h?)+f?|f)(jf+)?|k?((fg+h?)+f?|f)|g+i(fg+h?)*f?(jf+)?")
+    sen_taged = ''.join(l_taged)
+    tag_pos = re.search(pattern, sen_taged)
     end_pos = 0
     while tag_pos:
-        tag_position = end_pos + tag_pos.start()
+        for i in range(end_pos + tag_pos.start(), end_pos + tag_pos.end()):
+            flag[i] = 1
         end_pos += tag_pos.end()
-        if l_taged[tag_position + 1] == 'i' or l_taged[tag_position + 1] == 'j' or l_taged[tag_position + 1] == 'k':
-            l_taged[tag_position + 1] = 'w'
-        tag_pos = re.search("w[^w]w", ''.join(l_taged[end_pos:]))
+        tag_pos = re.search(pattern, sen_taged[end_pos:])
+    for i in range(len(flag)):
+        if not flag[i]:
+            l_taged[i] = 'w'
     return l_taged
 
 
 def find_arabic_num(sentence):
-    pattern = re.compile("[-+]?(\d+(\.\d*)?)([eE][-+]?\d+)?([\/:](\d+(\.\d*)?)([eE][-+]?\d+)?)?%?")
+    pattern = re.compile("[-+]?(\d+(\.\d*)?)([eE][-+]?\d+)?([\/:](\d+(\.\d*)?)([eE][-+]?\d+)?)?%?‰?")
     seg = re.search(pattern, sentence)
     seg_list = []
     end_pos = 0
@@ -76,45 +93,58 @@ def find_arabic_num(sentence):
         seg_list.append((end_pos + seg.start(), end_pos + seg.end()))
         end_pos += seg.end()
         seg = re.search(pattern, sentence[end_pos:])
-    return seg_list
+    sen = ['w' for i in range(len(sentence))]
+    # a tag list for the sentence and 'w' represents the word doesn't have tag
+    for i in seg_list:
+        for j in range(i[0], i[1]):
+            if sen[j] == 'w':
+                sen[j] = 'a'  # 'a' represent the word is arabic number
+    for i in range(len(sentence)):
+        if sentence[i] == ',':
+            sen[i] = 't'  # t represent the temp tag
+    sen_tag = ''.join(sen)
+    if 't' in sen_tag:
+        res = re.search("a+(ta{3})+", sen_tag)
+        end_pos = 0
+        while res:
+            res_start = end_pos + res.start()
+            res_end = end_pos + res.end()
+            end_pos = res_end
+            for i in range(res_start, res_end):
+                if sen[i] == 't':
+                    sen[i] = 'c'
+            res = re.search("a+(ta{3})+", sen_tag[end_pos:])
+        for i in range(len(sen)):
+            if sen[i] == 't':
+                sen[i] = 'c'
+    return sen
 
 
 if __name__ == "__main__":
     with open("resource/tokens", "r") as fo:
         tokens = fo.read().split(" ")
     with open("resource/CN", "r") as fo:
-        f = fo.read().split(" ")
+        t_f = fo.read().split(" ")
     with open("resource/Magnitude", "r") as fo:
-        g = fo.read().split(" ")
+        t_g = fo.read().split(" ")
     with open("resource/CFC", "r") as fo:
-        i = fo.read().split(" ")
+        t_i = fo.read().split(" ")
     with open("resource/CRP", "r") as fo:
-        j = fo.read().split(" ")
+        t_j = fo.read().split(" ")
     with open("resource/ONP", "r") as fo:
-        k = fo.read().split(" ")
-    tag_l = []
-    tag_l.append(f)
-    tag_l.append(g)
-    tag_l.append(i)
-    tag_l.append(j)
-    tag_l.append(k)
+        t_k = fo.read().split(" ")
+    t_l = list()
+    t_l.append(t_f)
+    t_l.append(t_g)
+    t_l.append(t_i)
+    t_l.append(t_j)
+    t_l.append(t_k)
     with open("resource/baike/part-r-00000.txt", "r") as fo:
         for l in fo:
             l = l[:-1]
             if token_in_line(tokens, l):  # every quantity relationship takes the number as the center
-                sen = ['w' for i in range(len(l))]
-                # a tag list for the sentence and 'w' represents the word doesn't have tag
-                arabic = find_arabic_num(l)
-                for i in arabic:
-                    for j in range(i[0], i[1]):
-                        if sen[j] == 'w':
-                            sen[j] = 'a'  # 'a' represent the word is arabic number
-                comma = re.search(",", l)
-                while comma:
-                    if (comma.start() > 0 and sen[comma.start() - 1] == 'a') and (comma.start() < len(sen) and sen[comma.start() + 1] == 'a'):
-                        sen[comma.start()] = 'a'
-                    comma = re.search(",", l)
-                line_taged = tag_cn_num(tag_l, sen, l)
+                sen = find_arabic_num(l)
+                line_taged = tag_cn_num(t_l, sen, l)
                 n_pos = re.search("[^w]", ''.join(line_taged))
                 if n_pos:
                     print(l, ''.join(line_taged))

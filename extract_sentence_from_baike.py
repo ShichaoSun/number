@@ -1,4 +1,5 @@
 import re
+import time
 
 
 def token_in_line(token_list, line):
@@ -120,6 +121,60 @@ def find_arabic_num(sentence):
     return sen
 
 
+def clear_idioms(tag_list, l_taged, line):
+    for word in tag_list:
+        if word in line:
+            pos = re.search(word, line)
+            pos_end = 0
+            while pos:
+                for pos_i in range(pos_end + pos.start(), pos_end + pos.end()):
+                    l_taged[pos_i] = 'w'
+                pos_end += pos.end()
+                pos = re.search(word, line[pos_end:])
+    return l_taged
+
+
+def tag_q(n_su, q_su, q_co, q, pre, l_taged, q_adv, line):
+    def tag(tag_list, label, s_taged, sen):
+        tag_list = sorted(tag_list, key=lambda x: len(x), reverse=True)
+        for _tag in tag_list:
+            if not _tag:
+                break
+            if _tag in sen:
+                pos_end = 0
+                pos = re.search(_tag, sen)
+                while pos:
+                    flag_con = True
+                    for pos_i in range(pos_end + pos.start(), pos_end + pos.end()):
+                        if l_taged[pos_i] != 'w' and l_taged[pos_i] != 'n':
+                            flag_con = False
+                            break
+                    if flag_con:
+                        for pos_i in range(pos_end + pos.start(), pos_end + pos.end()):
+                            s_taged[pos_i] = label
+                    pos_end += pos.end()
+                    pos = re.search(_tag, sen[pos_end:])
+        return s_taged
+    l_taged = tag(n_su, "p", l_taged, line)
+    l_taged = tag(q_su, "t", l_taged, line)
+    l_taged = tag(q, "q", l_taged, line)
+    l_taged = tag(q_co, "o", l_taged, line)
+    l_taged = tag(pre, "s", l_taged, line)
+    l_taged = tag(q_adv, "v", l_taged, line)
+    taged = ''.join(l_taged)
+    flag = [0 for i in range(len(line))]
+    position = re.search("s*n+q+n+t*|s*n+v+q+t*|s*n+p*q*t*", taged)
+    p_end = 0
+    while position:
+        for pp in range(p_end + position.start(), p_end + position.end()):
+            flag[pp] = 1
+        p_end += position.end()
+        position = re.search("s*n+q+n+t*|s*n+v+q+t*|s*n+p*q*t*", taged[p_end:])
+    for ii in range(len(line)):
+        if flag[ii] == 0 and l_taged[ii] != 'n':
+            l_taged[ii] = 'w'
+    return l_taged
+
 if __name__ == "__main__":
     with open("resource/tokens", "r") as fo:
         tokens = fo.read().split(" ")
@@ -139,12 +194,37 @@ if __name__ == "__main__":
     t_l.append(t_i)
     t_l.append(t_j)
     t_l.append(t_k)
+    with open("resource/idioms") as fo:
+        t_i = fo.read().split(" ")
+    with open("resource/n_suffix") as fo:
+        n_suffix = fo.read().split(" ")
+    with open("resource/prefix") as fo:
+        prefix = fo.read().split(" ")
+    with open("resource/q_con") as fo:
+        q_con = fo.read().split(" ")
+    with open("resource/q_suffix") as fo:
+        q_suffix = fo.read().split(" ")
+    with open("resource/quantity") as fo:
+        quantity = fo.read().split(" ")
+    with open("resource/adv") as fo:
+        adv = fo.read().split(" ")
+    fi = open("sen", "w")
     with open("resource/baike/part-r-00000.txt", "r") as fo:
         for l in fo:
             l = l[:-1]
             if token_in_line(tokens, l):  # every quantity relationship takes the number as the center
                 sen = find_arabic_num(l)
                 line_taged = tag_cn_num(t_l, sen, l)
+                line_taged = clear_idioms(t_i, line_taged, l)
                 n_pos = re.search("[^w]", ''.join(line_taged))
                 if n_pos:
-                    print(l, ''.join(line_taged))
+                    sen_taged = [i for i in line_taged]
+                    for i in range(len(l)):
+                        if line_taged[i] != 'w':
+                            sen_taged[i] = 'n'
+                    sen_taged = tag_q(n_suffix, q_suffix, q_con, quantity, prefix, sen_taged, adv, l)
+                    for i in range(len(l)):
+                        if sen_taged[i] == 'n':
+                            sen_taged[i] = line_taged[i]
+                    print(l)
+                    print(" ".join(sen_taged))

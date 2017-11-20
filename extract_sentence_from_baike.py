@@ -175,6 +175,7 @@ def tag_q(n_su, q_su, q_co, q, pre, l_taged, q_adv, line):
             l_taged[ii] = 'w'
     return l_taged
 
+
 if __name__ == "__main__":
     with open("resource/tokens", "r") as fo:
         tokens = fo.read().split(" ")

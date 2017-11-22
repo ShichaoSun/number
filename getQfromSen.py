@@ -27,7 +27,7 @@ GRAMMAR = {
     "arabic_number": "[-+]?(\d+(\.\d*)?)([eE][-+]?\d+)?([\/:](\d+(\.\d*)?)([eE][-+]?\d+)?)?%?‰?|\d+(,\d{3})+",
     "Chinese_number": "(($CN$ $Magnitude$+ $SMC$?)+ $CN$ | $CN$ ) ($CRP$ $CN$+)?",
     "Chinese_Fraction_number": "$Chinese_number$ $CRP$ $Chinese_number$",
-    "number": "$arabic_number$ | $Chinese_Fraction_number$ | $Chinese_number$ | $arabic_number$ $Magnitude$",
+    "number": "$arabic_number$ $Magnitude$ | $arabic_number$ | $Chinese_Fraction_number$ | $Chinese_number$",
     "Ordinal Number": "$ONP$ $number$",
     "Quantity_phrase": "$Ordinal Number$ | $CN$ $adv$ $quantity$ | $prefix$? $number$ $quantity$? $q_suffix$? "
                        "$n_suffix$? "
@@ -108,7 +108,7 @@ def tag_sentence(sentence, grammar):
 
 if __name__ == "__main__":
     g = sort_grammar(GRAMMAR)
-    s = "第一，我有两个苹果，大约4斤多，第2，有一大堆梨。"
+    s = "第一，我有两个苹果，大约4斤多，第2，有一大堆梨,5/6的人没有来上课，3.5亿人受伤。"
     d = get_re_from_grammar(g)
     res = tag_sentence(s, d)
     res_word = collections.OrderedDict()

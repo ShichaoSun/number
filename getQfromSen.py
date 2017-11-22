@@ -1,5 +1,6 @@
 # coding=utf-8
 import re
+import codecs
 
 
 GRAMMAR = {
@@ -27,7 +28,8 @@ GRAMMAR = {
     "Chinese_Fraction_number": "$Chinese_number$ $CRP$ $Chinese_number$",
     "number": "$arabic_number$ | $Chinese_Fraction_number$ | $Chinese_number$ | $arabic_number$ $Magnitude$",
     "Ordinal Number": "$ONP$ $number$",
-    "Quantity_phrase": "$CN$ $adv$ $quantity$ | $prefix$? $number$ $quantity$? $q_suffix$?"
+    "Quantity_phrase": "$Ordinal Number$ | $CN$ $adv$ $quantity$ | $prefix$? $number$ $quantity$? $q_suffix$? "
+                       "$n_suffix$? "
 }
 
 
@@ -41,7 +43,7 @@ def get_re_from_grammar(grammar):
     grammar = dict(grammar)
     dict_re = dict()
     for key, value in grammar.items():
-        var_list = re.findall("\$[^\$]+\$", value)
+        var_list = re.findall("\$[^$]+\$", value)
         if len(var_list):
             for var in var_list:
                     value = value.replace(var, "(" + dict_re[var[1:-1]] + ")")
@@ -53,7 +55,7 @@ def get_re_from_grammar(grammar):
             value = "|".join(value)
         elif re.search("file(.+)", value):
             file_pos = value[5:-1]
-            with open(file_pos, "r", encoding='utf-8') as fo:
+            with codecs.open(file_pos, "r", 'utf-8') as fo:
                 value = fo.read().split(" ")
                 value = "|".join(value)
         dict_re[key] = value.replace(" ", "")
@@ -77,7 +79,7 @@ def tag_sentence(sentence, grammar):
 
 if __name__ == "__main__":
     g = GRAMMAR
-    s = "我有两个苹果，大约4斤多，有一大堆梨。"
+    s = "第一，我有两个苹果，大约4斤多，第2，有一大堆梨。"
     d = get_re_from_grammar(g)
     res = tag_sentence(s, d)
     res_word = dict()

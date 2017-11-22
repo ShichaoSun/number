@@ -1,6 +1,7 @@
 # coding=utf-8
 import re
 import codecs
+import collections
 
 
 GRAMMAR = {
@@ -33,6 +34,35 @@ GRAMMAR = {
 }
 
 
+def sort_grammar(grammar):
+    sort_temp = collections.OrderedDict()
+    while len(sort_temp) != len(grammar):
+        for key, value in grammar.items():
+            if key not in sort_temp:
+                if len(re.findall("\$[^$]+\$", value)) == 0:
+                    sort_temp[key] = 0
+                else:
+                    val_list = re.findall("\$[^$]+\$", value)
+                    val_flag = False
+                    val_temp = 0
+                    for val in val_list:
+                        if val[1: -1] not in sort_temp:
+                            val_flag = True
+                            break
+                        elif val_temp < sort_temp[val[1: -1]]:
+                            val_temp = sort_temp[val[1: -1]]
+                    if not val_flag:
+                        sort_temp[key] = val_temp + 1
+    sort_g = collections.OrderedDict()
+    counter = 0
+    while len(sort_g) != len(grammar):
+        for key, value in sort_temp.items():
+            if value == counter:
+                sort_g[key] = grammar[key]
+        counter += 1
+    return sort_g
+
+
 def get_re_from_grammar(grammar):
     """
     get the dict(tag : re) from the grammar file
@@ -46,7 +76,7 @@ def get_re_from_grammar(grammar):
         var_list = re.findall("\$[^$]+\$", value)
         if len(var_list):
             for var in var_list:
-                    value = value.replace(var, "(" + dict_re[var[1:-1]] + ")")
+                value = value.replace(var, "(" + dict_re[var[1:-1]] + ")")
         elif len(re.findall(" ", value)):
             value = value.split(" ")
             for i in range(len(value)):
@@ -78,7 +108,7 @@ def tag_sentence(sentence, grammar):
 
 
 if __name__ == "__main__":
-    g = GRAMMAR
+    g = sort_grammar(GRAMMAR)
     s = "第一，我有两个苹果，大约4斤多，第2，有一大堆梨。"
     d = get_re_from_grammar(g)
     res = tag_sentence(s, d)

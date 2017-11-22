@@ -111,7 +111,7 @@ if __name__ == "__main__":
     s = "第一，我有两个苹果，大约4斤多，第2，有一大堆梨。"
     d = get_re_from_grammar(g)
     res = tag_sentence(s, d)
-    res_word = dict()
+    res_word = collections.OrderedDict()
     for k, v in res.items():
         temp_l = []
         for vv in v:

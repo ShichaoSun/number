@@ -70,7 +70,6 @@ def get_re_from_grammar(grammar):
     :return:
     """
     re_list = [".", "+", "*", "/"]
-    grammar = dict(grammar)
     dict_re = dict()
     for key, value in grammar.items():
         var_list = re.findall("\$[^$]+\$", value)
@@ -93,7 +92,7 @@ def get_re_from_grammar(grammar):
 
 
 def tag_sentence(sentence, grammar):
-    tag = dict()
+    tag = collections.OrderedDict()
     for key, value in grammar.items():
         end_pos = 0
         temp_tag = []

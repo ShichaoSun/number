@@ -119,3 +119,4 @@ if __name__ == "__main__":
         res_word[k] = temp_l
     for k in res.keys():
         print(k, res[k], res_word[k])
+

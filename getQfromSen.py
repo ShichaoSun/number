@@ -108,7 +108,7 @@ def tag_sentence(sentence, grammar):
 
 if __name__ == "__main__":
     g = sort_grammar(GRAMMAR)
-    s = "第一，我有两个苹果，大约4斤多，第2，有一大堆梨,5/6的人没有来上课，3.5亿人受伤。"
+    s = "第一，我有两个苹果，大约4斤多，第2，有一大堆梨,5/6的人没有来上课，3.5亿人受伤,-3.5e10是什么"
     d = get_re_from_grammar(g)
     res = tag_sentence(s, d)
     res_word = collections.OrderedDict()

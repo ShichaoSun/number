@@ -70,7 +70,7 @@ def get_re_from_grammar(grammar):
     :return:
     """
     re_list = [".", "+", "*", "/"]
-    dict_re = dict()
+    dict_re = collections.OrderedDict()
     for key, value in grammar.items():
         var_list = re.findall("\$[^$]+\$", value)
         if len(var_list):

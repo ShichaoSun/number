@@ -42,8 +42,8 @@ re for Chinese number and quantity detection
 - combination of other labels
 ```
 NUM::$ad$ $mag$
-NUM::$an$
-NUM::$cd$ 
+NUM::$ad$
+NUM::$CN$ 
 QP::$NUM$ $q$ 
 ```
 
